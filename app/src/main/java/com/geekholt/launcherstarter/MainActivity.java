@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //替换为原来的主题，在onCreate之前调用
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRecyclerView = findViewById(R.id.recyclerview);
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onWindowFocusChanged(hasFocus);
         if (!mHasRecord) {
             mHasRecord = true;
-            LaunchTimer.endRecord("app launch totalTime");
+            LaunchTimer.endRecord("onWindowFocusChanged");
         }
     }
 

@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.geekholt.launcherstarter.R;
 import com.geekholt.launcherstarter.bean.NewsItem;
-import com.geekholt.launcherstarter.util.LogUtils;
+import com.geekholt.launcherstarter.util.LaunchTimer;
 
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
                         @Override
                         public boolean onPreDraw() {
                             holder.layout.getViewTreeObserver().removeOnPreDrawListener(this);
-                            LogUtils.i("FeedShow");
+                            LaunchTimer.endRecord("FeedShow");
                             if (mCallBack != null) {
                                 mCallBack.onFeedShow();
                             }

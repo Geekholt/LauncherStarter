@@ -19,6 +19,10 @@ import com.geekholt.launcherstarter.util.LaunchTimer;
 import com.taobao.weex.InitConfig;
 import com.taobao.weex.WXSDKEngine;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import cn.jpush.android.api.JPushInterface;
 
 /**
@@ -38,6 +42,14 @@ public class App extends Application {
     };
     private String mDeviceId;
 
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    // We want at least 2 threads and at most 4 threads in the core pool,
+    // preferring to have 1 less than the CPU count to avoid saturating
+    // the CPU with background work
+    private static final int CORE_POOL_SIZE = Math.max(2, Math.min(CPU_COUNT - 1, 4));
+
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+
     public static Application getApplication() {
         return mApplication;
     }
@@ -54,12 +66,64 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         mApplication = this;
-        initAMap();
-        initWeex();
-        initStetho();
-        initFresco();
-        initDeviceId();
-        initJPush();
+        ExecutorService service = Executors.newFixedThreadPool(CORE_POOL_SIZE);
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //高德地图
+                initAMap();
+            }
+        });
+
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //weex
+                initWeex();
+
+                countDownLatch.countDown();
+            }
+        });
+
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //Stecho
+                initStetho();
+            }
+        });
+
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //图片加载
+                initFresco();
+            }
+        });
+
+
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //自己写的代码
+                initDeviceId();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                //推送
+                initJPush();
+            }
+        });
+
+        try {
+            countDownLatch.await();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        LaunchTimer.endRecord("application onCreate");
     }
 
 
@@ -108,4 +172,5 @@ public class App extends Application {
         JPushInterface.init(this);
         JPushInterface.setAlias(this, 0, mDeviceId);
     }
+
 }
